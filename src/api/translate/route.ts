@@ -62,8 +62,8 @@ Only provide the translated text without any additional commentary or explanatio
       targetLang
     });
 
-  } catch (error) {
-    const err = error as any;
+  } catch (error: unknown) {
+    const err = error as axios.AxiosError;
     console.error('Detailed Translation Error:', err.response?.data || err);
     return NextResponse.json(
       { 
@@ -75,7 +75,6 @@ Only provide the translated text without any additional commentary or explanatio
   }
 }
 
-// CORS handling
 export async function OPTIONS() {
   return new NextResponse(null, {
     headers: {
