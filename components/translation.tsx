@@ -6,24 +6,45 @@ import { Button } from './ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Textarea } from './ui/textarea'
 
-// Language mappings
-const LANGUAGES = {
-  'en': 'English',
-  'es': 'Spanish',
-  'fr': 'French',
-  'de': 'German',
-  'it': 'Italian',
-  'ja': 'Japanese',
-  'ko': 'Korean',
-  'zh': 'Chinese',
-  'ru': 'Russian',
-  'ar': 'Arabic'
+// Define a type for language
+type Language = {
+  code: string;
+  name: string;
 }
+
+// Expanded and categorized language mappings
+const LANGUAGE_CATEGORIES = {
+  popular: [
+    { code: 'en', name: 'English' },
+    { code: 'es', name: 'Spanish' },
+    { code: 'fr', name: 'French' },
+    { code: 'de', name: 'German' },
+    { code: 'zh', name: 'Chinese' },
+    { code: 'ar', name: 'Arabic' },
+    { code: 'ru', name: 'Russian' }
+  ],
+  other: [
+    { code: 'it', name: 'Italian' },
+    { code: 'ja', name: 'Japanese' },
+    { code: 'ko', name: 'Korean' },
+    { code: 'pt', name: 'Portuguese' },
+    { code: 'nl', name: 'Dutch' },
+    { code: 'tr', name: 'Turkish' },
+    { code: 'hi', name: 'Hindi' },
+    { code: 'sv', name: 'Swedish' }
+  ]
+}
+
+// Convert to a flat object for easy lookup
+const LANGUAGES = Object.fromEntries(
+  [...LANGUAGE_CATEGORIES.popular, ...LANGUAGE_CATEGORIES.other]
+    .map(lang => [lang.code, lang.name])
+)
 
 export default function TranslationComponent() {
   const [text, setText] = useState('')
   const [sourceLang, setSourceLang] = useState('en')
-  const [targetLang, setTargetLang] = useState('es')
+  const [targetLang, setTargetLang] = useState('')
   const [translation, setTranslation] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -74,9 +95,9 @@ export default function TranslationComponent() {
   }
 
   return (
-    <div className="bg-white shadow-2xl rounded-xl p-6 w-full max-w-2xl">
+    <div className="bg-white shadow-2xl rounded-xl p-7 w-full max-w-2xl">
       <div className="flex items-center justify-center mb-6">
-        <Languages className="w-10 h-10 text-blue-600 mr-3" />
+        <Languages className="w-10 h-10 text-purple-600 mr-3" />
         <h1 className="text-3xl font-bold text-gray-800">Translator</h1>
       </div>
 
@@ -86,11 +107,17 @@ export default function TranslationComponent() {
           <Select value={sourceLang} onValueChange={setSourceLang}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Source Language">
-                {LANGUAGES[sourceLang as keyof typeof LANGUAGES]}
+                {LANGUAGES[sourceLang]}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(LANGUAGES).map(([code, name]) => (
+              <div className="mb-2 px-2 text-sm font-semibold text-gray-600">Popular Languages</div>
+              {LANGUAGE_CATEGORIES.popular.map(({ code, name }) => (
+                <SelectItem key={code} value={code}>{name}</SelectItem>
+              ))}
+              <div className="border-t my-2"></div>
+              <div className="mb-2 px-2 text-sm font-semibold text-gray-600">Other Languages</div>
+              {LANGUAGE_CATEGORIES.other.map(({ code, name }) => (
                 <SelectItem key={code} value={code}>{name}</SelectItem>
               ))}
             </SelectContent>
@@ -105,20 +132,14 @@ export default function TranslationComponent() {
           <RefreshCcw className="w-5 h-5 text-blue-600" />
         </Button>
 
-        {/* Target Language Select */}
+        {/* Target Language Input */}
         <div className="flex-1">
-          <Select value={targetLang} onValueChange={setTargetLang}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Target Language">
-                {LANGUAGES[targetLang as keyof typeof LANGUAGES]}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(LANGUAGES).map(([code, name]) => (
-                <SelectItem key={code} value={code}>{name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Textarea 
+            placeholder="Enter Language (e.g. Spanish)" 
+            value={targetLang}
+            onChange={(e) => setTargetLang(e.target.value)}
+            className="min-h-[25px] resize-none"
+          />
         </div>
       </div>
 
@@ -147,7 +168,7 @@ export default function TranslationComponent() {
 
       <Button 
         onClick={handleTranslate} 
-        disabled={isLoading || !text}
+        disabled={isLoading || !text || !targetLang}
         className="w-full bg-blue-600 hover:bg-blue-700 transition"
       >
         {isLoading ? (
