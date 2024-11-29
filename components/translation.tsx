@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Languages, ChevronDown, Loader2, RefreshCcw } from 'lucide-react'
+import { Languages, Loader2, RefreshCcw } from 'lucide-react'
 import { Button } from './ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Textarea } from './ui/textarea'
