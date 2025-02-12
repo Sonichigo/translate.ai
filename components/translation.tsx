@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState } from 'react'
-import { Languages, Loader2, RefreshCcw } from 'lucide-react'
+import React, { useState, useRef } from 'react'
+import { Languages, Loader2, RefreshCcw, Copy, Check } from 'lucide-react'
 import { Button } from './ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Textarea } from './ui/textarea'
@@ -48,6 +48,7 @@ export default function TranslationComponent() {
   const [translation, setTranslation] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [isCopied, setIsCopied] = useState(false)
 
   const handleTranslate = async () => {
     if (!text.trim()) {
@@ -94,8 +95,27 @@ export default function TranslationComponent() {
     setTranslation('')
   }
 
+  const handleCopyToClipboard = () => {
+    if (translation) {
+      navigator.clipboard.writeText(translation).then(() => {
+        setIsCopied(true)
+        setTimeout(() => setIsCopied(false), 2000)
+      })
+    }
+  }
+
+  const handleCopyToMarkdown = () => {
+    if (translation) {
+      const markdownText = `\`\`\`\n${translation}\n\`\`\``
+      navigator.clipboard.writeText(markdownText).then(() => {
+        setIsCopied(true)
+        setTimeout(() => setIsCopied(false), 2000)
+      })
+    }
+  }
+
   return (
-    <div className="bg-white shadow-2xl rounded-xl p-7 w-full max-w-2xl">
+    <div className="bg-white shadow-2xl rounded-xl p-7 w-full max-w-2xl max-h-2xl">
       <div className="flex items-center justify-center mb-6">
         <Languages className="w-10 h-10 text-purple-600 mr-3" />
         <h1 className="text-3xl font-bold text-gray-800">Translator</h1>
@@ -134,12 +154,24 @@ export default function TranslationComponent() {
 
         {/* Target Language Input */}
         <div className="flex-1">
-          <Textarea 
-            placeholder="Enter Language (e.g. Spanish)" 
-            value={targetLang}
-            onChange={(e) => setTargetLang(e.target.value)}
-            className="min-h-[25px] resize-none"
-          />
+          <Select value={targetLang} onValueChange={setTargetLang}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Target Language">
+                {targetLang ? LANGUAGES[targetLang] : 'Select Language'}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <div className="mb-2 px-2 text-sm font-semibold text-gray-600">Popular Languages</div>
+              {LANGUAGE_CATEGORIES.popular.map(({ code, name }) => (
+                <SelectItem key={code} value={code}>{name}</SelectItem>
+              ))}
+              <div className="border-t my-2"></div>
+              <div className="mb-2 px-2 text-sm font-semibold text-gray-600">Other Languages</div>
+              {LANGUAGE_CATEGORIES.other.map(({ code, name }) => (
+                <SelectItem key={code} value={code}>{name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -153,16 +185,49 @@ export default function TranslationComponent() {
         />
 
         {/* Translated Text Output */}
-        <div className="bg-gray-50 rounded-md p-3 min-h-[200px] flex items-center justify-center">
-          {isLoading ? (
-            <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
-          ) : error ? (
-            <p className="text-red-500">{error}</p>
-          ) : translation ? (
-            <p className="text-gray-800">{translation}</p>
-          ) : (
-            <p className="text-gray-400">Translation will appear here</p>
-          )}
+        <div className="bg-gray-50 rounded-md p-3 min-h-[200px] flex flex-col">
+          {/* Copy Buttons */}
+          <div className="flex justify-end mb-2 space-x-2">
+            <Button 
+              onClick={handleCopyToClipboard}
+              variant="ghost"
+              size="sm"
+              className="text-gray-500 hover:text-gray-800"
+            >
+              {isCopied ? (
+                <Check className="w-4 h-4 text-green-500" />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
+            </Button>
+            <Button 
+              onClick={handleCopyToMarkdown}
+              variant="ghost"
+              size="sm"
+              className="text-gray-500 hover:text-gray-800"
+            >
+              {isCopied ? (
+                <Check className="w-4 h-4 text-green-500" />
+              ) : (
+                <>MD</>
+              )}
+            </Button>
+          </div>
+
+          {/* Scrollable Translation Area */}
+          <div className="overflow-y-auto max-h-[170px]">
+            {isLoading ? (
+              <div className="flex items-center justify-center h-full">
+                <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+              </div>
+            ) : error ? (
+              <p className="text-red-500">{error}</p>
+            ) : translation ? (
+              <p className="text-gray-800">{translation}</p>
+            ) : (
+              <p className="text-gray-400">Translation will appear here</p>
+            )}
+          </div>
         </div>
       </div>
 

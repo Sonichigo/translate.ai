@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import axios from 'axios';
+import axios, {AxiosError} from 'axios';
 
 export async function POST(request: NextRequest) {
   try {
-    // Parse the incoming request body
     const { text, sourceLang, targetLang } = await request.json();
 
-    // Validate input
     if (!text || !sourceLang || !targetLang) {
       return NextResponse.json(
         { error: 'Missing required parameters' }, 
@@ -25,7 +23,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Full Azure OpenAI API URL
     const url = `${AZURE_ENDPOINT}/openai/deployments/${DEPLOYMENT_NAME}/chat/completions?api-version=2024-08-01-preview`;
 
     // Construct the translation request payload
@@ -63,7 +60,7 @@ Only provide the translated text without any additional commentary or explanatio
     });
 
   } catch (error: unknown) {
-    const err = error as axios.AxiosError;
+    const err = error as AxiosError;
     console.error('Detailed Translation Error:', err.response?.data || err);
     return NextResponse.json(
       { 
